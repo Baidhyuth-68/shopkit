@@ -1,0 +1,13 @@
+**/__pycache__
+**/*.py[cod]
+**/.venv
+storefront/node_modules
+**/venv
+backend/.env
+backend/shop.db
+backend/*.db
+backend/media/*
+!backend/media/.gitkeep
+.git
+docs
+*.md

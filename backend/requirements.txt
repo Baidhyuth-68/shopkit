@@ -1,0 +1,21 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+SQLAlchemy==2.0.36
+pydantic==2.10.4
+email-validator==2.2.0
+PyJWT==2.10.1
+python-multipart==0.0.20
+python-dotenv==1.0.1
+
+# --- Payments (Admin -> Payments) ---
+cryptography==44.0.0   # encrypts gateway secrets at rest
+httpx==0.28.1          # calls Stripe / Razorpay
+
+# --- Hosted Postgres (Neon, Supabase, Aiven, RDS) ---
+# Installed by default so a deploy cannot fail on a missing driver. Harmless
+# if you stay on SQLite; the driver simply is not used.
+psycopg[binary]==3.2.3
+
+# --- Production server ---
+# The dev server (uvicorn --reload) is not for production. See docs/DEPLOY.md.
+gunicorn==23.0.0

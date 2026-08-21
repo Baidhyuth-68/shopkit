@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "ShopKit API",
+    "description": "Storefront, admin, payments and API-key integration.\n\nSetup:\n1. Variables tab → set `base_url` (default http://localhost:8000).\n2. Run **Auth → Login as admin**. The token is captured into `{{token}}` automatically.\n3. Run **API keys → Create a credential**. Its key id and secret are captured into `{{api_key_id}}` and `{{api_key_secret}}`, so the Integration folder works straight away.\n\nThe Integration folder uses the API key header. Everything else uses the bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "admin_email", "value": "admin@myshop.com" },
+    { "key": "admin_password", "value": "admin12345" },
+    { "key": "token", "value": "" },
+    { "key": "api_key_id", "value": "" },
+    { "key": "api_key_secret", "value": "" },
+    { "key": "sku", "value": "" },
+    { "key": "order_number", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('signed in', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "pm.collectionVariables.set('token', d.access_token);",
+                  "console.log('Signed in as ' + d.user.email);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Who am I",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Methods shown at checkout (public)",
+          "request": { "method": "GET", "url": "{{base_url}}/api/payments/methods" },
+          "description": "No auth. Returns only publishable keys — never a secret."
+        },
+        {
+          "name": "List gateways (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/admin/payment-gateways"
+          },
+          "description": "Secrets come back masked as ••••••••1234."
+        },
+        {
+          "name": "Save Stripe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/admin/payment-gateways/stripe",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Card payment\",\n  \"is_enabled\": true,\n  \"test_mode\": true,\n  \"publishable_key\": \"pk_test_replace_me\",\n  \"secret_key\": \"sk_test_replace_me\",\n  \"webhook_secret\": \"whsec_replace_me\",\n  \"instructions\": \"Secure card payment, processed by Stripe.\"\n}"
+            }
+          },
+          "description": "Omit secret_key on a later save to keep the stored one."
+        },
+        {
+          "name": "Save Razorpay",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/admin/payment-gateways/razorpay",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"UPI, cards and netbanking\",\n  \"is_enabled\": true,\n  \"test_mode\": true,\n  \"publishable_key\": \"rzp_test_replace_me\",\n  \"secret_key\": \"replace_me\",\n  \"instructions\": \"You will be taken to Razorpay to pay.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Start a payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/payments/{{order_number}}/initiate"
+          },
+          "description": "Read next_action in the response to know what the browser should do."
+        },
+        {
+          "name": "Record the outcome",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/payments/{{order_number}}/confirm",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"paid\",\n  \"reference\": \"manual-receipt-001\"\n}" }
+          }
+        },
+        {
+          "name": "Forget a gateway's keys",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/admin/payment-gateways/stripe/secrets"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API keys",
+      "item": [
+        {
+          "name": "Create a credential",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const [id, secret] = d.header_value.split('.');",
+                  "pm.collectionVariables.set('api_key_id', id);",
+                  "pm.collectionVariables.set('api_key_secret', secret);",
+                  "console.log('Credential saved — the Integration folder is ready.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/api/admin/api-keys",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman\",\n  \"scopes\": [\"catalog:read\", \"catalog:write\", \"orders:read\", \"orders:write\"]\n}"
+            }
+          },
+          "description": "The only response that ever contains the secret."
+        },
+        {
+          "name": "List credentials",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/admin/api-keys"
+          }
+        },
+        {
+          "name": "Revoke a credential",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/admin/api-keys/1/revoke"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Integration (API key)",
+      "item": [
+        {
+          "name": "Check the credential",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": "{{base_url}}/api/integration/whoami"
+          },
+          "description": "Run this first. A 200 means the header is formatted correctly."
+        },
+        {
+          "name": "List products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const items = pm.response.json().items;",
+                  "if (items.length) pm.collectionVariables.set('sku', items[0].sku);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/integration/products?page=1&page_size=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "integration", "products"],
+              "query": [
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one product by SKU",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": "{{base_url}}/api/integration/products/{{sku}}"
+          }
+        },
+        {
+          "name": "Set stock by SKU",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/integration/products/{{sku}}/stock?stock=42",
+              "host": ["{{base_url}}"],
+              "path": ["api", "integration", "products", "{{sku}}", "stock"],
+              "query": [{ "key": "stock", "value": "42" }]
+            }
+          },
+          "description": "Needs catalog:write. A read-only key gets 403 here."
+        },
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/integration/orders?page=1&page_size=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "integration", "orders"],
+              "query": [
+                { "key": "status", "value": "paid", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Move an order on",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/integration/orders/{{order_number}}/status?status=shipped",
+              "host": ["{{base_url}}"],
+              "path": ["api", "integration", "orders", "{{order_number}}", "status"],
+              "query": [{ "key": "status", "value": "shipped" }]
+            }
+          }
+        },
+        {
+          "name": "Admin is out of reach for API keys",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key_id}}.{{api_key_secret}}" }],
+            "url": "{{base_url}}/api/admin/dashboard"
+          },
+          "description": "Expected: 401. API keys deliberately cannot reach /api/admin."
+        }
+      ]
+    }
+  ]
+}

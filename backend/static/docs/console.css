@@ -1,0 +1,103 @@
+/* =========================================================================
+   The API reference's own chrome — the bar above Swagger UI.
+
+   Swagger ships its own stylesheet and is not worth fighting, so everything
+   here is scoped under .console-* and left alone below the bar. The palette
+   matches the rest of ShopKit: navy ink, one copper accent, hairline rules.
+   ========================================================================= */
+
+:root {
+  --dk-ink: #0E1726;
+  --dk-accent: #A65323;
+  --dk-paper: #F5F6F8;
+  --dk-line: rgba(255, 255, 255, .14);
+  --dk-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --dk-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body { margin: 0; background: var(--dk-paper); }
+
+.console-bar {
+  background: var(--dk-ink);
+  color: #fff;
+  font-family: var(--dk-body);
+  border-bottom: 2px solid var(--dk-accent);
+}
+.console-inner {
+  max-width: 1460px; margin: 0 auto; padding: 16px 24px;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+
+.console-brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.console-mark {
+  width: 36px; height: 36px; flex: none; display: grid; place-items: center;
+  background: var(--dk-accent); color: #fff; border-radius: 7px;
+  font-family: var(--dk-mono); font-weight: 600; font-size: .74rem;
+}
+.console-title { font-weight: 600; font-size: 1.02rem; letter-spacing: -.01em; }
+.console-sub {
+  font-family: var(--dk-mono); font-size: .62rem; letter-spacing: .16em;
+  text-transform: uppercase; color: rgba(255, 255, 255, .5); margin-top: 2px;
+}
+
+.console-auth { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.console-auth input {
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid var(--dk-line);
+  color: #fff;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font: 400 .86rem var(--dk-body);
+  width: 190px;
+}
+.console-auth input::placeholder { color: rgba(255, 255, 255, .42); }
+.console-auth input:focus {
+  outline: none; border-color: var(--dk-accent);
+  background: rgba(255, 255, 255, .11);
+}
+
+.console-btn {
+  border: 1px solid transparent; border-radius: 7px;
+  padding: 9px 16px; cursor: pointer;
+  font: 600 .85rem var(--dk-body);
+  background: var(--dk-accent); color: #fff;
+  white-space: nowrap;
+}
+.console-btn:hover { filter: brightness(1.08); }
+.console-btn.ghost { background: transparent; border-color: var(--dk-line); color: rgba(255, 255, 255, .85); }
+.console-btn.ghost:hover { background: rgba(255, 255, 255, .08); filter: none; }
+
+.console-who { display: flex; align-items: center; gap: 12px; }
+.console-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255, 255, 255, .08); border: 1px solid var(--dk-line);
+  border-radius: 100px; padding: 7px 14px; font-size: .85rem;
+}
+.console-chip b { font-weight: 600; }
+.console-dot { width: 7px; height: 7px; border-radius: 50%; background: #34C77B; flex: none; }
+.console-role {
+  font-family: var(--dk-mono); font-size: .6rem; letter-spacing: .12em;
+  text-transform: uppercase; color: rgba(255, 255, 255, .55);
+}
+
+.console-note {
+  font-size: .82rem; color: rgba(255, 255, 255, .58);
+  flex-basis: 100%; margin: 0; line-height: 1.55;
+}
+.console-note code {
+  font-family: var(--dk-mono); font-size: .78rem;
+  background: rgba(255, 255, 255, .09); padding: 2px 6px; border-radius: 4px;
+}
+.console-note.bad { color: #FF9C8F; }
+.console-note a { color: #fff; }
+
+/* Swagger's own "Authorize" button still works; it is just no longer the only
+   way in, so it is played down. */
+.swagger-ui .topbar { display: none; }
+.swagger-ui .info { margin: 28px 0; }
+.swagger-ui .scheme-container { background: transparent; box-shadow: none; padding: 0 0 18px; }
+
+@media (max-width: 720px) {
+  .console-auth input { width: 100%; }
+  .console-auth { width: 100%; }
+}

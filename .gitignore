@@ -1,0 +1,28 @@
+# secrets
+backend/.env
+
+# database
+backend/*.db
+backend/*.db-journal
+
+# uploaded images
+backend/media/*
+!backend/media/.gitkeep
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+
+# Storefront build
+storefront/node_modules/
+storefront/.vite/
+# frontend/store IS committed on purpose — see docs/DEPLOY.md. It keeps
+# deploying a Python-only job, because Render's Python runtime has no Node.

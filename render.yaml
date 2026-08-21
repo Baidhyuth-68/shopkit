@@ -1,0 +1,58 @@
+# Render Blueprint — deploys ShopKit as one free web service.
+#
+# Use it: push this repo to GitHub, then Render → New → Blueprint → pick the repo.
+# Render reads this file and creates the service with the settings below.
+#
+# The database is NOT defined here on purpose. Render's free Postgres expires
+# 30 days after it is created, which is no use for a real shop. Create a free
+# Neon database instead and paste its URL into DATABASE_URL when Render asks.
+# docs/DEPLOY.md walks through it.
+
+services:
+  - type: web
+    name: shopkit
+    runtime: python
+    plan: free
+    region: singapore          # closest to India. Others: oregon, frankfurt, ohio, virginia
+    branch: main
+
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: >-
+      cd backend &&
+      gunicorn app.main:app
+      --worker-class uvicorn.workers.UvicornWorker
+      --workers 2
+      --bind 0.0.0.0:$PORT
+      --timeout 60
+
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+
+      # Generated once, then left alone. Changing it later signs everyone out
+      # AND makes saved payment keys and the SMTP password unreadable.
+      - key: SECRET_KEY
+        generateValue: true
+
+      # Paste your Neon connection string when Render prompts.
+      - key: DATABASE_URL
+        sync: false
+
+      # The owner account, created on first boot only.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+      # Your real address once you know it, e.g. https://shopkit.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+
+      # No demo catalogue on a real shop.
+      - key: SEED_DEMO_DATA
+        value: "false"
+
+      - key: APP_NAME
+        value: ShopKit
