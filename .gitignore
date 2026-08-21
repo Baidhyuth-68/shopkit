@@ -1,5 +1,8 @@
 # secrets
 backend/.env
+.env
+.env.*
+!.env.example
 
 # database
 backend/*.db
@@ -24,5 +27,6 @@ venv/
 # Storefront build
 storefront/node_modules/
 storefront/.vite/
-# frontend/store IS committed on purpose — see docs/DEPLOY.md. It keeps
-# deploying a Python-only job, because Render's Python runtime has no Node.
+
+# frontend/store IS committed on purpose
+# See docs/DEPLOY.md
